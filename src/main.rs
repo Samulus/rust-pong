@@ -1,15 +1,21 @@
+/*
+ * main.rs
+ * Author: Samuel Vargas
+ * Date: 03/27/2017
+ */
+
 extern crate sdl2;
 
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use std::time;
 
+mod ai;
+mod ball;
 mod event;
 mod game;
-mod entity;
-mod ball;
-mod ai;
-mod util;
+mod paddle;
+mod world;
 
 pub fn main() {
 
@@ -30,7 +36,6 @@ pub fn main() {
     renderer.present();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
-
     let mut gamestate = game::State::new();
 
     /* get events */
@@ -41,7 +46,11 @@ pub fn main() {
                 Event::Quit {..} => { break 'game; },
 
                 Event::KeyDown {keycode: Some(keycode), ..} => {
-                   gamestate.input(keycode);
+                   gamestate.input(keycode, true);
+                },
+                
+                Event::KeyUp {keycode: Some(keycode), ..} => {
+                   gamestate.input(keycode, false);
                 },
 
                 _ => {}

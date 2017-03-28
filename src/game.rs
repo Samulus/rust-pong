@@ -1,37 +1,97 @@
-extern crate sdl2;  
+/*
+ * game.rs
+ * Author: Samuel Vargas
+ * Date: 03/27/2017
+ */
 
-use entity::Box;
-use entity::BoxType;
-use ball::move_ball;
-use ai::follow_paddle;
+extern crate sdl2;  
+extern crate sdl2_sys;
+
+use ai::*;
+use ball::*;
+use paddle::*;
+use world::*;
+
+use sdl2::keyboard::Keycode;
+use std::collections::HashMap;
 
 pub struct State {
-    player: Box,
-    ai: Box,
-    ball: Box,
+    player: Paddle,
+    ai: Paddle,
+    ball: Ball,
+    keyboard: HashMap<Keycode, bool>,
 }
 
 impl State {
 
     pub fn new() -> State {
         return State {
-            player: Box::new(50,10, BoxType::Paddle),
-            ai: Box::new(750, 10, BoxType::Paddle),
-            ball: Box::new(400,300, BoxType::Ball),
+
+            player: Paddle::new(PADDLE_P1_X, PADDLE_P1_Y, 
+                                PADDLE_WIDTH, PADDLE_HEIGHT, 
+                                PADDLE_SPEED),
+
+                ai: Paddle::new(PADDLE_AI_X, PADDLE_AI_Y, 
+                                PADDLE_WIDTH, PADDLE_HEIGHT, 
+                                PADDLE_SPEED),
+
+              ball: Ball::new(BALL_X, BALL_Y, 
+                             BALL_WIDTH, BALL_HEIGHT,
+                             BALL_SPEED),
+
+            keyboard: HashMap::new(),
         };
     }
 
-    pub fn input(&mut self, key: sdl2::keyboard::Keycode) {
-        self.player.input(key);
+    pub fn input(&mut self, key: Keycode, press: bool) {
+        let mut missing_key = false;
+        match self.keyboard.get_mut(&key) {
+            Some(v) => *v = press,
+            None    => missing_key = true,
+        }
+
+        if missing_key {
+            self.keyboard.insert(key, press);
+        }
     }
 
     pub fn update(&mut self) {
-        move_ball(&mut self.ball);
-        follow_paddle(&mut self.ai, &mut self.ball);
 
-        if self.ai.check_collsion(&mut self.ball) {
+        self.ball.move_it();
+
+        match self.ball.out_of_bounds() {
+            Some(OutOfBoundsFault::Player) => {
+                self.ball.reset();
+            },
+
+            Some(OutOfBoundsFault::Ai) => {
+                self.ball.reset();
+            },
+
+            _ => {}
         }
 
+        /* get the ai paddle to follow the ball */
+        follow_paddle(&mut self.ai, &self.ball);
+
+        /* move player */
+        match self.keyboard.get(&Keycode::Down) {
+            Some(p) => if *p { self.player.down(); },
+            None => {},
+        }
+
+        match self.keyboard.get(&Keycode::Up) {
+            Some(p) => if *p { self.player.up(); },
+            None => {},
+        }
+
+        if self.ball.check_collsion(&self.player) {
+            self.ball.direction = Direction::Right;
+        }
+
+        if self.ball.check_collsion(&self.ai) {
+            self.ball.direction = Direction::Left;
+        }
     }
 
     pub fn render(&mut self, renderer : &mut sdl2::render::Renderer) {

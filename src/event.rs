@@ -1,3 +1,9 @@
+/*
+ * event.rs
+ * Author: Samuel Vargas
+ * Date: 03/27/2017
+ */
+
 extern crate sdl2;
 use sdl2::EventPump;
 

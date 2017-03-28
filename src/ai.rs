@@ -1,18 +1,27 @@
 /*
  * ai.rs
  * Author: Samuel Vargas
+ * Date: 03/27/2017
  */
 
-use entity::Box;
+use ball::*;
+use paddle::*;
 
+pub fn follow_paddle(paddle: &mut Paddle, ball: &Ball) {
 
-pub fn follow_paddle(paddle : &mut Box, ball : &mut Box) {
-    if paddle.y < ball.y {
-        paddle.y += 4;
+    let dt = ball.dimen.y - (paddle.dimen.y + (paddle.dimen.h / 2));
+
+    /* avoid doing little micromovements when the paddle is close enough */
+    if dt.abs() < 5 {
+        return;
     }
 
-    else if paddle.y > ball.y {
-        paddle.y -= 4;
+    if paddle.dimen.y < ball.dimen.y - paddle.dimen.h / 2 {
+        paddle.dimen.y += 4;
+    }
+
+    else if paddle.dimen.y > ball.dimen.y  - paddle.dimen.h / 2{
+        paddle.dimen.y -= 4;
     }
 }
 

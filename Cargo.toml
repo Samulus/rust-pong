@@ -2,6 +2,7 @@
 name = "pong"
 version = "0.1.0"
 authors = ["Samuel Vargas <Samuel.A.Vargas@asu.edu>"]
+build = "build.rs"
 
 [dependencies]
 sdl2 = "0.29.0"
